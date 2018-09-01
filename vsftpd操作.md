@@ -1,5 +1,6 @@
 1、vsftpd安装
   centos下
+  
     a、yum search vsftpd
     
     b、yum install vsftpd.x86_xx
