@@ -1,8 +1,11 @@
 1、vsftpd安装
   centos下
     a、yum search vsftpd
+    
     b、yum install vsftpd.x86_xx
-2、配置vsftpd
+    
+    
+ 2、配置vsftpd
   编辑vsftpd的配置文件/etc/vsftpd/vsftpd.conf
   在配置文件中找到"anonymous_enable=YES"，将"YES"改为"NO"，将匿名登陆禁用
   查看配置文件是否生效：cat /etc/vsftpd/vsftpd.conf |grep ^[^#]
