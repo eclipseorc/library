@@ -1,0 +1,30 @@
+persistent message 持久的化消息
+durable message    持久化消息
+
+Channel对象提供的ConfirmListener()回调方法只包含deliveryTag（当前Chanel发出的消息序号），
+我们需要自己为每一个Channel维护一个unconfirm的消息序号集合，每publish一条数据，集合中元素加1，
+每回调一次handleAck方法，unconfirm集合删掉相应的一条（multiple=false）或多条（multiple=true）记录。
+
+mandatory
+事务机制和消息确认机制都是为了保证异常状态下的消息不丢失，其实正常状态下也可能存在消息丢失问题，
+例如交换机按照路由规则未找到该消息对应的队列。confirm机制配合mandatory标志使用可以实现消息发送的可靠性，且性能较好。
+上一篇博客中，曾经介绍过生产者发送消息时可以设置的一个标志位mandatory。
+当mandatory标志位设置为true时，如果exchange根据自身类型和消息routeKey无法找到一个符合条件的queue，
+那么会调用basic.return方法将消息返还给生产者, channel.addReturnListener添加一个监听器，
+当broker执行basic.return方法时，会回调handleReturn方法，这样我们就可以处理变为死信的消息了；
+当mandatory设为false时，出现上述情形broker会直接将消息扔掉;
+通俗的讲，mandatory标志告诉broker代理服务器至少将消息route到一个队列中，否则就将消息return给发送者。
+
+Exclusive Consumer(独占消费)
+我们经常希望维持队列中的消息，按一定次序转发给消息者。
+然而当有多个JMS Session和消息消费者实例的从同一个队列中获取消息的时候，就不能保证消息顺序处理。因为消息被多个不同线程并发处理着。
+
+在ActiveMQ4.x中可以采用Exclusive Consumer或者Exclusive Queues，避免这种情况，
+Broker会从消息队列中，一次发送消息给一个消息消费者来保证顺序。
+
+A．当在接收信息的时候有一个或者多个备份接收消息者和一个独占消息者的同时接收时候，无论两者创建先后，在接收的时候，均为独占消息者接收。
+
+B．当在接收信息的时候，有多个独占消费者的时候，只有一个独占消费者可以接收到消息。
+
+C．当有多个备份消息者和多个独占消费者的时候，当所有的独占消费者均close的时候，只有一个备份消费者接到到消息。
+备注：备份消费者为不带任何参数的消费者
